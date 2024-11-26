@@ -5,7 +5,7 @@ pip install -r requirements.txt
 
 2. Тесты могут быть запущены с указанием желаемого языка интерфейса с помощью параметра командной строки --language:
 ```bash
-pytest --language=es test_items.py
+pytest --language=es test_main_page.py
 ```
 где 'es' желаемый язык
 

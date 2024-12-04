@@ -1,35 +1,27 @@
 from .base_page import BasePage
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from pages.locators import LoginPageLocators
+from .locators import LoginPageLocators
 
-
-class LoginPage:
-    def __init__(self, driver):
-        self.driver = driver
-
+class LoginPage(BasePage):
     def should_be_login_page(self):
         self.should_be_login_url()
         self.should_be_login_form()
         self.should_be_register_form()
 
     def should_be_login_url(self):
-        """Проверка, что URL содержит 'login'."""
-        current_url = self.driver.current_url
-        assert "login" in current_url, f"Expected 'login' in URL, but got {current_url}"
+        assert "login" in self.browser.current_url, "Login link is not presented"
 
     def should_be_login_form(self):
-        """Проверка наличия формы логина на странице."""
-        login_form = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located(LoginPageLocators.LOGIN_FORM)
-        )
-        assert login_form.is_displayed(), "Login form is not displayed"
+        assert self.is_element_present(*LoginPageLocators.LOGIN_FORM), "Login form is not presented"
 
     def should_be_register_form(self):
-        """Проверка наличия формы регистрации на странице."""
-        register_form = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located(LoginPageLocators.REGISTER_FORM)
-        )
-        assert register_form.is_displayed(), "Register form is not displayed"
+        assert self.is_element_present(*LoginPageLocators.FORM_REG), "Login registration is not presented"
+
+    def register_new_user(self, email, password):
+        email_field = self.browser.find_element(*LoginPageLocators.EMAIL)
+        email_field.send_keys(email)
+        password1 = self.browser.find_element(*LoginPageLocators.PWD_REG)
+        password1.send_keys(password)
+        password2 = self.browser.find_element(*LoginPageLocators.PWD_REG_CONFIRM)
+        password2.send_keys(password)
+        btn_reg = self.browser.find_element(*LoginPageLocators.BUTTON_REG)
+        btn_reg.click()

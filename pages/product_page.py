@@ -1,68 +1,31 @@
 from .base_page import BasePage
 from .locators import ProductPageLocators
+from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoAlertPresentException 
-import math
 from selenium.webdriver.support import expected_conditions as EC
+import math
 
-
-class ProductPage(BasePage): 
-
-    def add_product_to_cart(self):
-        # self.should_have_promo_in_url()
-        self.should_be_basket_button()
-        self.click_add_to_cart_button()
+class ProductPage(BasePage):
+    
+    def should_be_add_product_to_cart(self):
+        self.should_be_add_to_basket_button()
+        link = self.browser.find_element(*ProductPageLocators.ADD_BASKET)
+        link.click()
         self.solve_quiz_and_get_code()
-        self.should_have_success_alert()
-        self.product_name_should_match_the_one_added()
-        self.product_price_should_match_original_product_price()
+        self.should_be_added_book_name_message()
+        self.should_be_correct_book_name()
+        self.should_be_correct_book_price()
 
-    def should_not_be_success_message(self):
-        assert self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
-        "Success message is presented, but should not be"
+    def add_to_basket(self):
+        self.should_be_add_to_basket_button()
+        link = self.browser.find_element(*ProductPageLocators.ADD_BASKET)
+        link.click()
 
-    def success_message_should_be_disappeared(self):
-        assert self.is_disappeared(*ProductPageLocators.SUCCESS_MESSAGE), \
-        "Success message is not disappeared"
-
-    def should_have_promo_in_url(self):
-        """Проверка наличия промо-кода в URL."""
-        assert ProductPageLocators.PROMO in self.browser.current_url, \
-            'Promo code "newYear" is missing'
-
-    def should_be_basket_button(self):
-        """Проверка наличия кнопки корзины на странице."""
-        basket_button = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located(ProductPageLocators.BASKET_LINK)
-        )
-        assert basket_button.is_displayed(), "Basket button is not displayed"
-
-
-    def click_add_to_cart_button(self):
-        """Нажатие на кнопку добавления в корзину."""
-        add_to_cart_button = self.browser.find_element(*ProductPageLocators.BASKET_LINK)
-        add_to_cart_button.click()
-
-
-    def should_have_success_alert(self):
-        """Проверка наличия уведомления об успешном добавлении в корзину."""
-        assert self.is_element_present(*ProductPageLocators.ALERT), \
-            'Alert is not presented'
-        
-    def product_name_should_match_the_one_added(self):
-        product_name = self.browser.find_element(*ProductPageLocators.PRODUCT_NAME).text
-        alert_product_name = self.browser.find_element(*ProductPageLocators.ALERT_PRODUCT_NAME).text
-        assert product_name == alert_product_name, \
-            'Product name doesn\'t match the one added to cart'
-
-    def product_price_should_match_original_product_price(self):
-        product_price = self.browser.find_element(*ProductPageLocators.PRODUCT_PRICE).text
-        alert_product_price = self.browser.find_element(*ProductPageLocators.ALERT_PRICE).text
-        assert product_price == alert_product_price, \
-            'Product price doesn\'t match original product price'
+    def should_be_add_to_basket_button(self):
+        assert self.is_element_present(*ProductPageLocators.ADD_BASKET), "Button add to basket is not on the page"
 
     def solve_quiz_and_get_code(self):
-        """Решение капчи и получение кода."""
+        WebDriverWait(self.browser, 5).until(EC.alert_is_present())
         alert = self.browser.switch_to.alert
         x = alert.text.split(" ")[2]
         answer = str(math.log(abs((12 * math.sin(float(x))))))
@@ -75,3 +38,37 @@ class ProductPage(BasePage):
             alert.accept()
         except NoAlertPresentException:
             print("No second alert presented")
+        
+    def should_be_added_book_name_message(self):
+        assert self.is_element_present(*ProductPageLocators.PRODUCT_ADDED), "product is not added to basket"
+    
+    def should_be_correct_book_price(self):
+        price_basket = self.browser.find_element(*ProductPageLocators.PRICE_BASKET)
+        price_basket_text = price_basket.text
+        price_book = self.browser.find_element(*ProductPageLocators.PRICE_BOOK)
+        price_book_text = price_book.text
+        print(f"basket_price: {price_basket_text}, book_price: {price_book_text}")
+        assert price_basket_text == price_book_text, "the price of the product in the basket does not match the price of the product"
+        
+    def should_be_correct_book_name(self):
+        book_name_page = self.browser.find_element(*ProductPageLocators.BOOK_NAME_PAGE)
+        book_name_page_text = book_name_page.text
+        book_name_message = self.browser.find_element(*ProductPageLocators.BOOK_NAME_MESSAGE)
+        book_name_message_text = book_name_message.text
+        print(f"book name page: {book_name_page_text}, book name message: {book_name_message_text}")
+        assert book_name_page_text == book_name_message_text, "The name of the product in the message matches the added"
+
+
+    def should_not_be_success_message_after_adding_product_to_basket(self):
+        link = self.browser.find_element(*ProductPageLocators.ADD_BASKET)
+        link.click()
+        assert self.is_not_element_present(*ProductPageLocators.BASKET_PRODUCT_NAME), "element visible"
+
+    def should_not_cant_see_success_message(self):
+        link = self.browser.find_element(*ProductPageLocators.ADD_BASKET)
+        assert self.is_not_element_present(*ProductPageLocators.BASKET_PRODUCT_NAME), "element visible"
+                                   
+    def should_not_be_success_message_disappeared(self):
+        link = self.browser.find_element(*ProductPageLocators.ADD_BASKET)
+        link.click()
+        assert self.is_disappeared(*ProductPageLocators.BASKET_PRODUCT_NAME), "element visible"

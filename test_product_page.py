@@ -6,7 +6,7 @@ from pages.login_page import LoginPage
 import pytest
 import time
 
-@pytest.mark.login
+@pytest.mark.login_guest
 class TestUserAddToBasketFromProductPage():
     @pytest.fixture(scope="function", autouse=True)
     def setup(self, browser):
